@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(uuid())
+  name     String?
+  email    String    @unique
+  password String?
+  status   String?   @default("pending")
+  otp      String?   @unique
+  role     Roles[]
+  product  Product[]
+  wallets  Wallet[]
+  post     Post[]
+  coachId  String?
+  coach    User?     @relation("CoachClients", fields: [coachId], references: [id])
+  clients  User[]    @relation("CoachClients")
+  isOtpExp Boolean?  @default(false)
+
+  videoCallClient VideoCall[] @relation("admin")
+
+  userId String?
+}
+
+model Product {
+  creator User? @relation(fields: [refId], references: [id])
+
+  pid   String  @id
+  price Int
+  name  String
+  image String?
+  refId String?
+}
+
+model VideoCall {
+  id        String  @id @default(uuid())
+  date      String?
+  title     String?
+  startTime String?
+  roomId    String?
+  roomSid   String?
+  url       String?
+
+  endDate String?
+
+  callType  String?  @default("call")
+  user      User?    @relation("admin", fields: [adminId], references: [id])
+  adminId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  title       String @id
+  description String
+  markdown    String
+}
+
+model Student {
+  id       String?
+  name     String?
+  email    String    @unique
+  password String
+  city     String?
+  teachers Teacher[]
+}
+
+model Teacher {
+  id       String  @id
+  name     String
+  stud     Student @relation(fields: [courseId], references: [email])
+  course   String
+  courseId String
+}
+
+model Wallet {
+  address String  @id
+  symbol  String
+  icon    String?
+  creator User?   @relation(fields: [cid], references: [id])
+  cid     String?
+}
+
+model Meetups {
+  id          String? @unique
+  title       String  @id
+  image       String?
+  address     String?
+  description String?
+}
+
+//USER ROLES
+enum Roles {
+  admin
+  client
+}
+
+model City {
+  name String @unique
+  temp String
+}
+
+model Post {
+  id      String  @id @default(uuid())
+  title   String?
+  body    String?
+  creator User?   @relation(fields: [refId], references: [id])
+
+  refId String?
+}
